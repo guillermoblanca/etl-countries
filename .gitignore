@@ -9,3 +9,6 @@ __pycache__/
 data/*.csv
 data/*.xls
 data/*.xlsx
+
+# Personal drafts — not part of the published site
+post-linkedin.md
