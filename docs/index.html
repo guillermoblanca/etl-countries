@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>¿Es España una economía fuerte? — Análisis macroeconómico</title>
+  <meta name="description" content="Análisis de 60 años de datos del Banco Mundial, modelos de Machine Learning y comparativas Norte/Sur Europa para determinar la posición real de España en la economía global.">
+  <meta property="og:title" content="¿Es España una economía fuerte?">
+  <meta property="og:description" content="Análisis macroeconómico con 47 indicadores, 60 años de datos, y modelos ML.">
+  <meta property="og:type" content="article">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#fafaf7;
+      --surface:#ffffff;
+      --border:#e8e6e0;
+      --border-strong:#d4d1c8;
+      --text:#3a3a3a;
+      --text-soft:#6b6b6b;
+      --title:#1a1a1a;
+      --accent:#c41e3a;
+      --accent-soft:#fef2f3;
+      --gold:#b8860b;
+      --green:#2e7d32;
+      --red:#c62828;
+      --serif:'Source Serif Pro',Georgia,Cambria,'Times New Roman',serif;
+      --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{font-size:17px;}
+    body{font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.65;
+      padding:2rem 1rem 3rem;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+    main{max-width:720px;margin:0 auto;}
+    a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s;}
+    a:hover{border-bottom-color:var(--accent);}
+
+    .cs-meta{font-size:.78rem;color:var(--text-soft);text-align:center;margin-bottom:2rem;
+      padding-bottom:1.5rem;border-bottom:1px solid var(--border);}
+
+    .cs-hero{text-align:center;margin-bottom:3.5rem;padding:1rem 0 2rem;}
+    .cs-hero__flag{font-size:2.5rem;line-height:1;margin-bottom:.8rem;}
+    .cs-hero__kicker{font-family:var(--sans);font-size:.7rem;color:var(--accent);
+      font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:.85rem;}
+    .cs-hero__title{font-family:var(--serif);font-size:2.4rem;font-weight:700;color:var(--title);
+      line-height:1.15;margin-bottom:1.1rem;letter-spacing:-.5px;}
+    .cs-hero__sub{font-family:var(--serif);font-size:1.15rem;color:var(--text-soft);
+      max-width:580px;margin:0 auto;line-height:1.55;font-style:italic;}
+    .cs-hero__kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+      gap:1.5rem;margin-top:2.5rem;padding:1.5rem 0;border-top:1px solid var(--border);
+      border-bottom:1px solid var(--border);}
+    .cs-hero__kpi{text-align:center;}
+    .cs-hero__kpi-val{font-family:var(--serif);font-size:1.6rem;font-weight:700;color:var(--title);
+      line-height:1;font-variant-numeric:tabular-nums;}
+    .cs-hero__kpi-lbl{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;
+      color:var(--text-soft);margin-top:.45rem;font-weight:500;}
+
+    .cs-toc{background:var(--surface);border:1px solid var(--border);border-radius:4px;
+      padding:1.4rem 1.6rem;margin-bottom:3rem;}
+    .cs-toc strong{font-family:var(--sans);color:var(--text-soft);text-transform:uppercase;
+      letter-spacing:1.5px;font-size:.68rem;display:block;margin-bottom:.7rem;font-weight:600;}
+    .cs-toc ol{margin:0;padding-left:1.4rem;color:var(--text);line-height:1.9;list-style-type:decimal;
+      font-family:var(--serif);font-size:.95rem;}
+    .cs-toc li{margin-bottom:.2rem;}
+    .cs-toc a{color:var(--text);}
+    .cs-toc a:hover{color:var(--accent);border-bottom:none;}
+
+    .cs-sec{margin-bottom:4rem;}
+    .cs-sec__num{font-family:var(--sans);font-size:.7rem;color:var(--accent);
+      font-weight:600;text-transform:uppercase;letter-spacing:1.5px;}
+    .cs-sec__title{font-family:var(--serif);font-size:1.85rem;font-weight:700;color:var(--title);
+      margin:.4rem 0 1.4rem;line-height:1.2;letter-spacing:-.3px;}
+    .cs-sec__body p{font-family:var(--serif);font-size:1.05rem;color:var(--text);
+      line-height:1.75;margin-bottom:1.1rem;}
+    .cs-sec__body strong{color:var(--title);font-weight:600;}
+    .cs-sec__body em{color:var(--accent);font-style:italic;}
+    .cs-sec__body ul{margin:.7rem 0 1.2rem 1.6rem;color:var(--text);line-height:1.75;
+      font-family:var(--serif);font-size:1rem;}
+    .cs-sec__body ul li{margin-bottom:.5rem;}
+
+    .cs-pullquote{font-family:var(--serif);font-size:1.4rem;font-style:italic;
+      color:var(--title);line-height:1.4;text-align:center;
+      margin:2.5rem 0;padding:1.5rem 2rem;
+      border-top:2px solid var(--title);border-bottom:2px solid var(--title);
+      font-weight:400;}
+    .cs-pullquote::before{content:'"';font-size:3rem;line-height:0;vertical-align:-.4em;
+      color:var(--accent);margin-right:.2rem;font-family:Georgia,serif;}
+    .cs-pullquote::after{content:'"';font-size:3rem;line-height:0;vertical-align:-.4em;
+      color:var(--accent);margin-left:.2rem;font-family:Georgia,serif;}
+
+    .cs-data-table{width:100%;border-collapse:collapse;font-size:.88rem;margin:1.3rem 0;
+      font-family:var(--sans);}
+    .cs-data-table th{padding:.65rem .8rem;text-align:left;color:var(--text-soft);
+      font-weight:600;font-size:.7rem;text-transform:uppercase;letter-spacing:1px;
+      border-bottom:2px solid var(--title);}
+    .cs-data-table td{padding:.7rem .8rem;border-bottom:1px solid var(--border);
+      color:var(--text);font-family:var(--sans);font-size:.88rem;}
+    .cs-data-table td.num{text-align:right;font-variant-numeric:tabular-nums;
+      font-weight:500;color:var(--title);font-feature-settings:"tnum";}
+    .cs-data-table tr.spain{background:var(--accent-soft);}
+    .cs-data-table tr.spain td{color:var(--title);font-weight:600;border-bottom-color:var(--accent);}
+    .cs-data-table tr:hover td{background:rgba(0,0,0,.02);}
+
+    .cs-verdict{background:var(--surface);border:1px solid var(--border-strong);
+      border-left:4px solid var(--accent);padding:1.8rem 2rem;margin:2.5rem 0;border-radius:2px;}
+    .cs-verdict h3{font-family:var(--sans);font-size:.75rem;color:var(--accent);
+      margin-bottom:1rem;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;}
+    .cs-verdict p{font-family:var(--serif);font-size:1.05rem;color:var(--text);
+      line-height:1.75;margin-bottom:1rem;}
+    .cs-verdict p:last-child{margin-bottom:0;}
+
+    .cs-stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+      gap:1.5rem;margin:1.5rem 0 2rem;padding:1.4rem 0;
+      border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+    .cs-stat{text-align:center;}
+    .cs-stat__val{font-family:var(--serif);font-size:1.55rem;font-weight:700;
+      color:var(--title);line-height:1;font-variant-numeric:tabular-nums;}
+    .cs-stat__lbl{font-family:var(--sans);font-size:.7rem;color:var(--text-soft);
+      margin-top:.5rem;line-height:1.4;font-weight:400;}
+
+    .cs-footer{margin-top:5rem;padding:2rem 0 0;border-top:2px solid var(--title);
+      font-size:.78rem;color:var(--text-soft);line-height:1.65;}
+    .cs-footer p{margin-bottom:.7rem;font-family:var(--sans);}
+    .cs-footer p:last-child{font-family:var(--serif);font-style:italic;}
+
+    @media print {
+      body{padding:1rem;font-size:11pt;}
+      .cs-hero__title{font-size:1.8rem;}
+      .cs-sec__title{font-size:1.3rem;}
+      .cs-sec, .cs-toc, .cs-data-table, .cs-stat-row, .cs-pullquote{break-inside:avoid;}
+      a{color:var(--title);}
+    }
+    @media (max-width:640px){
+      html{font-size:15px;}
+      body{padding:1.2rem .9rem 2rem;}
+      .cs-hero__title{font-size:1.7rem;}
+      .cs-sec__title{font-size:1.4rem;}
+      .cs-pullquote{font-size:1.15rem;padding:1.1rem 1rem;}
+      .cs-data-table{font-size:.78rem;}
+      .cs-data-table th, .cs-data-table td{padding:.5rem .55rem;}
+      .cs-hero__kpis{grid-template-columns:repeat(2,1fr);gap:1.2rem;}
+    }
+  </style>
+</head>
+<body>
+<main>
+
+<div class="cs-meta">
+  ANÁLISIS MACROECONÓMICO &nbsp;·&nbsp; 02 de June de 2026 &nbsp;·&nbsp;
+  Datos: World Bank &nbsp;·&nbsp; <a href="https://github.com/" target="_blank">Repositorio</a>
+</div>
+
+<div class="cs-hero">
+  <div class="cs-hero__flag">🇪🇸</div>
+  <div class="cs-hero__kicker">Caso de estudio · España 1965–2024</div>
+  <h1 class="cs-hero__title">¿Es España una economía fuerte?</h1>
+  <p class="cs-hero__sub">Un análisis basado en 47 indicadores del Banco Mundial, 60 años de datos históricos y 5 modelos de Machine Learning. La pregunta corta: depende de con quién la compares.</p>
+  <div class="cs-hero__kpis">
+      <div class="cs-hero__kpi"><div class="cs-hero__kpi-val">$35,326</div><div class="cs-hero__kpi-lbl">PIB/cápita</div></div>
+      <div class="cs-hero__kpi"><div class="cs-hero__kpi-val">55.9</div><div class="cs-hero__kpi-lbl">Strength score · #—/210</div></div>
+      <div class="cs-hero__kpi"><div class="cs-hero__kpi-val">44.4%</div><div class="cs-hero__kpi-lbl">del PIB/cap USA</div></div>
+      <div class="cs-hero__kpi"><div class="cs-hero__kpi-val">60.9</div><div class="cs-hero__kpi-lbl">Coste vida (US=100)</div></div>
+      <div class="cs-hero__kpi"><div class="cs-hero__kpi-val">Eurozone</div><div class="cs-hero__kpi-lbl">Cluster ML</div></div>
+    </div>
+</div>
+
+<div class="cs-toc">
+  <strong>Índice</strong>
+  <ol>
+    <li><a href="#cs1">Resumen ejecutivo</a></li>
+    <li><a href="#cs2">¿Es España una economía fuerte? La métrica honesta</a></li>
+    <li><a href="#cs3">Norte vs Sur Europa — la fractura estructural</a></li>
+    <li><a href="#cs4">El euro: ¿beneficio o trampa?</a></li>
+    <li><a href="#cs5">Crisis en 60 años — España, una y otra vez</a></li>
+    <li><a href="#cs6">Decisiones políticas que marcaron la trayectoria</a></li>
+    <li><a href="#cs7">Los últimos 3 años: ¿hay recuperación?</a></li>
+    <li><a href="#cs8">Lo que dice el modelo predictivo</a></li>
+    <li><a href="#cs9">Veredicto: ¿hacia dónde va España?</a></li>
+    <li><a href="#cs10">Metodología y fiabilidad de los datos</a></li>
+  </ol>
+</div>
+
+<div class="cs-sec" id="cs1">
+  <div class="cs-sec__num">§ 1 · Resumen ejecutivo</div>
+  <div class="cs-sec__title">España es una economía <em>mediana consolidada</em>, no fuerte ni débil</div>
+  <div class="cs-sec__body">
+    <p>España aparece en el <strong>top 1.4% mundial por PIB per cápita nominal</strong> ($35,326) pero solo en el <strong>puesto —/210</strong> por <em>strength score</em> compuesto, una métrica que combina nivel de renta, estabilidad histórica, resiliencia ante crisis y diversificación sectorial. La paradoja: España es rica en términos absolutos pero su economía tiene <strong>fragilidades estructurales</strong> que la sitúan por debajo de su grupo natural de comparación (Eurozona core).</p>
+    <p>El <em>strength score</em> de <strong style="color:hsl(45,90%,55%)">55.9/100</strong> se descompone así:</p>
+    <div class="cs-stat-row">
+      <div class="cs-stat"><div class="cs-stat__val">79.2</div><div class="cs-stat__lbl">Nivel de renta<br>(top mundial)</div></div>
+      <div class="cs-stat"><div class="cs-stat__val">83.3</div><div class="cs-stat__lbl">Estabilidad<br>30 años GDP growth</div></div>
+      <div class="cs-stat"><div class="cs-stat__val" style="color:hsl(0,75%,62%)">17.1</div><div class="cs-stat__lbl">Resiliencia<br>recuperación post-shock</div></div>
+      <div class="cs-stat"><div class="cs-stat__val" style="color:hsl(0,75%,62%)">19.9</div><div class="cs-stat__lbl">Diversificación<br>servicios=74% del PIB</div></div>
+    </div>
+    <p>Los dos primeros drivers son fuertes — España tiene nivel de renta alto y estabilidad razonable. Los dos últimos arrastran el score: <strong>recuperación lenta</strong> tras crisis (consecuencia directa de no poder devaluar dentro del euro) y <strong>baja diversificación</strong> (alta concentración en servicios, especialmente turismo).</p>
+  </div>
+</div>
+
+<div class="cs-sec" id="cs2">
+  <div class="cs-sec__num">§ 2 · La métrica honesta</div>
+  <div class="cs-sec__title">Rica en absoluto, mediana en términos relativos</div>
+  <div class="cs-sec__body">
+    <p>Comparada con el resto del mundo, España está claramente en el lado privilegiado. Pero la comparación relevante no es España vs. el promedio mundial — es <strong>España vs. los países con los que compite directamente</strong>: Eurozona core, OCDE, peer countries.</p>
+    <div class="cs-pullquote">"España tiene el poder adquisitivo de un europeo medio ($57,670/cápita PPP, 67.1% del estadounidense) pero un mercado laboral que se asemeja al de una economía emergente: paro de doble dígito, alta temporalidad, baja productividad por hora trabajada."</div>
+    <p>España ranquea <strong>#6/9 en Southern Europe</strong> por GDP/cápita, pero <strong>#6/9</strong> en menor paro. Es decir: dentro de su propia subregión, está en el tercio bajo en términos de mercado laboral. Domina demográficamente (37.5% de la población de Southern Europe), pero esa dominancia no se traduce en liderazgo económico.</p>
+    <p>El <strong>cluster ML data-driven</strong> (K-Means sin reglas pre-establecidas) coloca a España en el grupo "<em>Eurozone core (currency-locked)</em>" junto a Alemania, Francia, Italia y otros — el algoritmo identifica que <strong>compartir el euro crea un patrón económico distintivo</strong>, incluso sin que se le indique explícitamente la pertenencia al euro como feature.</p>
+  </div>
+</div>
+
+<div class="cs-sec" id="cs3">
+  <div class="cs-sec__num">§ 3 · La fractura europea</div>
+  <div class="cs-sec__title">Norte ordenado, Sur con paro estructural — España en el medio</div>
+  <div class="cs-sec__body">
+    <p>La fractura norte-sur europea no es retórica política, está en los datos:</p>
+    <table class="cs-data-table">
+      <thead><tr><th>País</th><th>GDP/cap</th><th>Paro</th><th>Deuda gob.</th><th>Strength</th><th>Coste vida</th></tr></thead>
+      <tbody>
+        <tr class="">
+          <td>🇳🇴 <strong>Norway</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Northern Europe</span></td>
+          <td class="num">$86,785</td>
+          <td class="num">4.6%</td>
+          <td class="num">31%</td>
+          <td class="num">73.1</td>
+          <td class="num">85.1</td>
+        </tr>
+        
+        <tr class="">
+          <td>🇩🇰 <strong>Denmark</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Northern Europe</span></td>
+          <td class="num">$71,026</td>
+          <td class="num">5.5%</td>
+          <td class="num">75%</td>
+          <td class="num">66.3</td>
+          <td class="num">86.7</td>
+        </tr>
+        
+        <tr class="">
+          <td>🇳🇱 <strong>Netherlands</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Western Europe</span></td>
+          <td class="num">$67,520</td>
+          <td class="num">3.9%</td>
+          <td class="num">54%</td>
+          <td class="num">63.5</td>
+          <td class="num">78.4</td>
+        </tr>
+        
+        <tr class="">
+          <td>🇦🇹 <strong>Austria</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Central Europe</span></td>
+          <td class="num">$58,268</td>
+          <td class="num">5.6%</td>
+          <td class="num">—</td>
+          <td class="num">66.9</td>
+          <td class="num">78.8</td>
+        </tr>
+        
+        <tr class="">
+          <td>🇸🇪 <strong>Sweden</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Northern Europe</span></td>
+          <td class="num">$57,117</td>
+          <td class="num">8.7%</td>
+          <td class="num">—</td>
+          <td class="num">66.1</td>
+          <td class="num">79.5</td>
+        </tr>
+        
+        <tr class="">
+          <td>🇧🇪 <strong>Belgium</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Western Europe</span></td>
+          <td class="num">$56,614</td>
+          <td class="num">5.9%</td>
+          <td class="num">—</td>
+          <td class="num">65.3</td>
+          <td class="num">77.0</td>
+        </tr>
+        
+        <tr class="">
+          <td>🇩🇪 <strong>Germany</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Western Europe</span></td>
+          <td class="num">$56,103</td>
+          <td class="num">3.7%</td>
+          <td class="num">21%</td>
+          <td class="num">65.1</td>
+          <td class="num">76.3</td>
+        </tr>
+        
+        <tr class="">
+          <td>🇫🇮 <strong>Finland</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Northern Europe</span></td>
+          <td class="num">$53,149</td>
+          <td class="num">9.5%</td>
+          <td class="num">58%</td>
+          <td class="num">62.3</td>
+          <td class="num">81.3</td>
+        </tr>
+        
+        <tr class="">
+          <td>🇫🇷 <strong>France</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Western Europe</span></td>
+          <td class="num">$46,103</td>
+          <td class="num">7.5%</td>
+          <td class="num">—</td>
+          <td class="num">62.8</td>
+          <td class="num">73.7</td>
+        </tr>
+        
+        <tr class="">
+          <td>🇮🇹 <strong>Italy</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Southern Europe</span></td>
+          <td class="num">$40,385</td>
+          <td class="num">6.4%</td>
+          <td class="num">77%</td>
+          <td class="num">60.6</td>
+          <td class="num">65.1</td>
+        </tr>
+        
+        <tr class="spain">
+          <td>🇪🇸 <strong>Spain</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Southern Europe</span></td>
+          <td class="num">$35,326</td>
+          <td class="num">10.4%</td>
+          <td class="num">106%</td>
+          <td class="num">55.9</td>
+          <td class="num">60.9</td>
+        </tr>
+        
+        <tr class="">
+          <td>🇵🇹 <strong>Portugal</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Southern Europe</span></td>
+          <td class="num">$29,292</td>
+          <td class="num">6.2%</td>
+          <td class="num">6%</td>
+          <td class="num">54.5</td>
+          <td class="num">56.7</td>
+        </tr>
+        
+        <tr class="">
+          <td>🇬🇷 <strong>Greece</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">Southern Europe</span></td>
+          <td class="num">$24,626</td>
+          <td class="num">8.5%</td>
+          <td class="num">—</td>
+          <td class="num">45.5</td>
+          <td class="num">55.6</td>
+        </tr>
+        </tbody>
+    </table>
+    <p>Tres patrones evidentes:</p>
+    <p><strong>1. Brecha de productividad.</strong> Los países del norte (Noruega, Países Bajos, Suecia, Alemania) tienen GDP/cap entre 1.5x y 2.5x España. Esta diferencia no se cierra con políticas coyunturales — refleja décadas de inversión en capital humano, tecnología y diversificación.</p>
+    <p><strong>2. Mercados laborales.</strong> El paro en el norte oscila entre 3-5%; en el sur (España, Italia, Grecia) sigue por encima del 10%. España, pese a haber reducido el paro del 26% en 2013 al 10% actual, sigue duplicando o triplicando la cifra del norte.</p>
+    <p><strong>3. Coste de vida.</strong> El norte es más caro (índice 85-108), pero los salarios compensan. España es 39% más barata que USA (índice 61), pero ese "bonus de coste" no compensa los salarios significativamente menores.</p>
+    <div class="cs-pullquote">El sur europeo no es pobre. Es <em>menos productivo</em> que el norte — esa es la diferencia clave que los datos muestran consistentemente desde 1965.</div>
+  </div>
+</div>
+
+<div class="cs-sec" id="cs4">
+  <div class="cs-sec__num">§ 4 · El euro</div>
+  <div class="cs-sec__title">Estabilidad de precios a cambio de la herramienta de devaluación</div>
+  <div class="cs-sec__body">
+    <p>En 1999 España renunció a la peseta. Los datos del antes/después adopción del euro cuentan una historia mixta:</p>
+    <div class="cs-stat-row">
+      <div class="cs-stat"><div class="cs-stat__val" style="color:var(--green)">4.67% → 2.9%</div><div class="cs-stat__lbl">Inflación media<br>✓ bajó como prometía</div></div>
+      <div class="cs-stat"><div class="cs-stat__val" style="color:var(--red)">-0.64% → -4.16%</div><div class="cs-stat__lbl">Cuenta corriente<br>✗ déficit empeoró</div></div>
+      <div class="cs-stat"><div class="cs-stat__val" style="color:var(--red)">59.7% → 87.8%</div><div class="cs-stat__lbl">Deuda pública<br>✗ creció +28pp</div></div>
+      <div class="cs-stat"><div class="cs-stat__val">2.67% → 2.77%</div><div class="cs-stat__lbl">Crecimiento GDP<br>≈ estable</div></div>
+    </div>
+    <p>El euro <strong>cumplió la promesa de inflación baja</strong> (4.67% → 2.9% en España). Pero el coste fue real y cuantificable:</p>
+    <p><strong>Pérdida del ajuste cambiario.</strong> Antes de 1999, una crisis hacía que la peseta se devaluara — automáticamente las exportaciones españolas se abarataban en el extranjero y la economía se recuperaba vía competitividad. Sin esa válvula, cuando llegó Lehman 2008 el ajuste tuvo que venir por <em>devaluación interna</em>: salarios congelados, paro al 26%, deuda al 130% del PIB.</p>
+    <p><strong>Divergencia con Alemania.</strong> La cuenta corriente de Alemania pasó de -0.7% a +6% del PIB; la de España de -0.6% a -4.2%. Una diferencia de <strong>>10 puntos porcentuales</strong> que refleja flujos de capital del norte al sur durante 2000-2007 (financiando la burbuja inmobiliaria española con tipos del BCE bajos).</p>
+    <div class="cs-pullquote">El euro funcionó como una camisa de fuerza monetaria. La promesa de no devaluar se cumplió, pero el ajuste tuvo que venir vía deuda y desempleo.</div>
+  </div>
+</div>
+
+<div class="cs-sec" id="cs5">
+  <div class="cs-sec__num">§ 5 · Crisis en 60 años</div>
+  <div class="cs-sec__title">El ciclo recurrente: shock externo → ajuste vía paro</div>
+  <div class="cs-sec__body">
+    <p>España ha vivido 12 hitos macro entre 1973 y 2023. Su comportamiento en cada uno revela un patrón:</p>
+    <table class="cs-data-table">
+      <thead><tr><th>Crisis</th><th>Δ Rank mundial</th><th>GDP mín</th><th>Paro máx</th><th>Años recup.</th><th>Veredicto</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Primer Shock del Petróleo — OPEP / Yom Kippur</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">1973-1974</span></td>
+          <td class="num" style="color:var(--green)">+2</td>
+          <td class="num">5.6%</td>
+          <td class="num">—</td>
+          <td class="num">1</td>
+          <td>Stable</td>
+        </tr>
+        
+        <tr>
+          <td><strong>Segundo Shock del Petróleo + Shock Volcker</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">1979-1982</span></td>
+          <td class="num" style="color:var(--red)">-8</td>
+          <td class="num">-0.1%</td>
+          <td class="num">—</td>
+          <td class="num">1</td>
+          <td>Loser</td>
+        </tr>
+        
+        <tr>
+          <td><strong>Crisis de Deuda Latinoamericana — Década Perdida</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">1982-1989</span></td>
+          <td class="num" style="color:var(--green)">+12</td>
+          <td class="num">1.2%</td>
+          <td class="num">—</td>
+          <td class="num">5</td>
+          <td>Winner</td>
+        </tr>
+        
+        <tr>
+          <td><strong>Caída del Muro de Berlín y Colapso URSS</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">1989-1991</span></td>
+          <td class="num" style="color:var(--red)">-2</td>
+          <td class="num">2.5%</td>
+          <td class="num">15.9%</td>
+          <td class="num">1</td>
+          <td>Stable</td>
+        </tr>
+        
+        <tr>
+          <td><strong>Crisis del Tequila — México</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">1994-1995</span></td>
+          <td class="num" style="color:var(--red)">-2</td>
+          <td class="num">2.4%</td>
+          <td class="num">24.2%</td>
+          <td class="num">1</td>
+          <td>Stable</td>
+        </tr>
+        
+        <tr>
+          <td><strong>Crisis Financiera Asiática</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">1997-1998</span></td>
+          <td class="num" style="color:var(--red)">-3</td>
+          <td class="num">3.6%</td>
+          <td class="num">20.7%</td>
+          <td class="num">6</td>
+          <td>Loser</td>
+        </tr>
+        
+        <tr>
+          <td><strong>Burbuja Dot-com y Atentados 11S</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">2000-2001</span></td>
+          <td class="num" style="color:var(--green)">+3</td>
+          <td class="num">3.9%</td>
+          <td class="num">13.8%</td>
+          <td class="num">3</td>
+          <td>Winner</td>
+        </tr>
+        
+        <tr>
+          <td><strong>Gran Crisis Financiera — Lehman Brothers</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">2008-2009</span></td>
+          <td class="num" style="color:var(--red)">-7</td>
+          <td class="num">-3.8%</td>
+          <td class="num">17.9%</td>
+          <td class="num">1</td>
+          <td>Loser</td>
+        </tr>
+        
+        <tr>
+          <td><strong>Crisis de Deuda Soberana Eurozona</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">2011-2014</span></td>
+          <td class="num" style="color:var(--red)">-7</td>
+          <td class="num">-2.9%</td>
+          <td class="num">26.1%</td>
+          <td class="num">1</td>
+          <td>Loser</td>
+        </tr>
+        
+        <tr>
+          <td><strong>Shock del Precio del Crudo — OPEP</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">2014-2016</span></td>
+          <td class="num" style="color:var(--red)">-7</td>
+          <td class="num">1.5%</td>
+          <td class="num">24.4%</td>
+          <td class="num">1</td>
+          <td>Loser</td>
+        </tr>
+        
+        <tr>
+          <td><strong>Pandemia COVID-19</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">2020-2021</span></td>
+          <td class="num" style="color:var(--green)">+10</td>
+          <td class="num">-10.9%</td>
+          <td class="num">15.5%</td>
+          <td class="num">2</td>
+          <td>Winner</td>
+        </tr>
+        
+        <tr>
+          <td><strong>Guerra de Ucrania y Crisis Inflacionaria</strong> <span style="color:hsl(228,8%,55%);font-size:.7rem">2022-2023</span></td>
+          <td class="num" style="color:var(--green)">+9</td>
+          <td class="num">2.5%</td>
+          <td class="num">13.0%</td>
+          <td class="num">2</td>
+          <td>Winner</td>
+        </tr>
+        </tbody>
+    </table>
+    <p><strong>El patrón Lehman → Eurozona → Oil Shock (2008-2016)</strong> es la herida más grave de la historia económica reciente de España: perdió <strong>7 puestos en cada una</strong>, pasando del rank #37 al #48 mundial en GDP/cap. Once años recuperando lo perdido.</p>
+    <p>Lo notable es la <strong>recuperación post-COVID (+10) y post-Ucrania (+9)</strong>: España subió 19 puestos entre 2020 y 2024. La hipótesis: el turismo se recuperó muy rápido (España es la 2ª potencia turística mundial), los fondos Next Generation EU inyectaron capital, y el mercado laboral mejoró con las reformas de 2021-2022.</p>
+    <div class="cs-pullquote">Las crisis financieras castigaron a España desproporcionadamente. Pero las crisis post-2020 (sanitarias, geopolíticas) la beneficiaron en términos relativos.</div>
+  </div>
+</div>
+
+<div class="cs-sec" id="cs6">
+  <div class="cs-sec__num">§ 6 · Decisiones políticas</div>
+  <div class="cs-sec__title">5 inflexiones que marcaron 60 años</div>
+  <div class="cs-sec__body">
+    <p><strong>1959 — Plan de Estabilización.</strong> Fin de la autarquía franquista. Apertura al comercio. Sienta la base del milagro económico español 1960-1973 (crecimiento medio ~7%).</p>
+    <p><strong>1986 — Entrada en la CEE.</strong> Acceso al mercado europeo, fondos estructurales, modernización. España converge con Europa: de 60% del PIB/cápita medio europeo en 1985 al 88% en 2007.</p>
+    <p><strong>1999 — Adopción del euro.</strong> Convergencia de tipos de interés (de 14% a 4%). Crédito barato → burbuja inmobiliaria 2000-2007. La construcción llega al 12% del PIB. La economía aparenta un "milagro" que era endeudamiento privado masivo.</p>
+    <p><strong>2010-2012 — Austeridad fiscal forzada.</strong> Sin poder devaluar, España aplica recortes presupuestarios drásticos. Paro del 26% en 2013, mayor incluso que en la Guerra Civil. La generación 1980-1995 sufre escasez de oportunidades.</p>
+    <p><strong>2021-2024 — Reforma laboral + fondos NGEU.</strong> Reducción de la temporalidad (de 26% a 13%), inversión pública récord, salario mínimo +47% desde 2018. La economía supera el pre-pandemia en 2023.</p>
+    <div class="cs-pullquote">España es un país que reacciona bien a los incentivos externos (CEE, euro, fondos UE) pero estructura mal sus instituciones laborales y fiscales internas. Cada generación parte de cero con el paro.</div>
+  </div>
+</div>
+
+<div class="cs-sec" id="cs7">
+  <div class="cs-sec__num">§ 7 · Últimos 3 años</div>
+  <div class="cs-sec__title">9 indicadores mejoran, 1 empeora</div>
+  <div class="cs-sec__body">
+    <p>Los datos 2021-2024 muestran una recuperación amplia tras COVID + Ucrania:</p>
+    <div class="cs-stat-row">
+        <div class="cs-stat" style="border-left:3px solid var(--green)">
+          <div class="cs-stat__val" style="color:var(--green);font-size:1rem">+3.0%</div>
+          <div class="cs-stat__lbl">Población<br><span style="color:hsl(228,8%,50%)">2024</span></div>
+        </div>
+        
+        <div class="cs-stat" style="border-left:3px solid var(--green)">
+          <div class="cs-stat__val" style="color:var(--green);font-size:1rem">+14.7%</div>
+          <div class="cs-stat__lbl">PIB/cápita USD<br><span style="color:hsl(228,8%,50%)">2024</span></div>
+        </div>
+        
+        <div class="cs-stat" style="border-left:3px solid var(--green)">
+          <div class="cs-stat__val" style="color:var(--green);font-size:1rem">+31.0%</div>
+          <div class="cs-stat__lbl">PIB/cápita PPP<br><span style="color:hsl(228,8%,50%)">2024</span></div>
+        </div>
+        
+        <div class="cs-stat" style="border-left:3px solid var(--red)">
+          <div class="cs-stat__val" style="color:var(--red);font-size:1rem">-48.3%</div>
+          <div class="cs-stat__lbl">Crecimiento PIB %<br><span style="color:hsl(228,8%,50%)">2024</span></div>
+        </div>
+        
+        <div class="cs-stat" style="border-left:3px solid var(--green)">
+          <div class="cs-stat__val" style="color:var(--green);font-size:1rem">-20.4%</div>
+          <div class="cs-stat__lbl">Paro %<br><span style="color:hsl(228,8%,50%)">2025</span></div>
+        </div>
+        
+        <div class="cs-stat" style="border-left:3px solid var(--green)">
+          <div class="cs-stat__val" style="color:var(--green);font-size:1rem">-10.3%</div>
+          <div class="cs-stat__lbl">Inflación %<br><span style="color:hsl(228,8%,50%)">2024</span></div>
+        </div>
+        
+        <div class="cs-stat" style="border-left:3px solid var(--green)">
+          <div class="cs-stat__val" style="color:var(--green);font-size:1rem">+316.1%</div>
+          <div class="cs-stat__lbl">Cuenta corriente %<br><span style="color:hsl(228,8%,50%)">2024</span></div>
+        </div>
+        
+        <div class="cs-stat" style="border-left:3px solid var(--green)">
+          <div class="cs-stat__val" style="color:var(--green);font-size:1rem">-20.3%</div>
+          <div class="cs-stat__lbl">Deuda gob. %<br><span style="color:hsl(228,8%,50%)">2024</span></div>
+        </div>
+        
+        <div class="cs-stat" style="border-left:3px solid var(--green)">
+          <div class="cs-stat__val" style="color:var(--green);font-size:1rem">+2.0%</div>
+          <div class="cs-stat__lbl">Internet %<br><span style="color:hsl(228,8%,50%)">2024</span></div>
+        </div>
+        
+        <div class="cs-stat" style="border-left:3px solid var(--green)">
+          <div class="cs-stat__val" style="color:var(--green);font-size:1rem">+9.8%</div>
+          <div class="cs-stat__lbl">Exportaciones %<br><span style="color:hsl(228,8%,50%)">2024</span></div>
+        </div>
+        </div>
+    <p>El paro cayó <strong>20.4%</strong> en 3 años, la deuda pública bajó <strong>20.3%</strong>, la cuenta corriente pasó de cerca de cero a un superávit del 3.2% del PIB. La inflación volvió cerca del objetivo del BCE (2.8% actualmente). El único indicador "negativo" es la desaceleración del crecimiento, pero partía de un rebote post-COVID muy alto (>5%).</p>
+    <p>Si esta tendencia se mantiene, España puede recuperar parte del terreno perdido en 2008-2016. Pero requiere disciplina fiscal sostenida — algo que España ha tenido difícil históricamente.</p>
+  </div>
+</div>
+
+<div class="cs-sec" id="cs8">
+  <div class="cs-sec__num">§ 8 · El modelo predictivo</div>
+  <div class="cs-sec__title">Probabilidad de patrón de crisis: <em style="color:hsl(45,90%,55%)">4.0%</em> (bajo)</div>
+  <div class="cs-sec__body">
+    <p>El modelo Random Forest entrenado con 11.475 observaciones (1965-2014) y validado en 2.420 observaciones <em>out-of-sample</em> (2015-2024, AUC=0.824) clasifica a España en <strong>riesgo bajo de patrón de crisis</strong>: 4.0%.</p>
+    <p>Este resultado es coherente con los demás indicadores: España no presenta los <em>signals</em> típicos pre-crisis (alta deuda externa, inflación galopante, baja inversión). Sus problemas son <strong>estructurales</strong> (productividad, paro friccional, demografía), no de inestabilidad inmediata.</p>
+    <p>La <strong>vulnerabilidad externa</strong> (score 28.7/100) está en rango bajo-medio: ni petroestado dependiente, ni economía cerrada sin reservas. Pertenece al cluster K-Means "<em>Eurozone core (currency-locked)</em>" — el algoritmo agrupa España con las economías eurozona.</p>
+  </div>
+</div>
+
+<div class="cs-sec" id="cs9">
+  <div class="cs-verdict">
+    <h3>§ 9 · Veredicto</h3>
+    <p><strong>¿Es España una economía fuerte? La respuesta honesta es <em style="color:hsl(45,90%,60%)">no, pero tampoco débil</em>.</strong> Es una economía consolidada, mediana, atrapada en una camisa de fuerza monetaria (euro) que limita sus opciones de ajuste, y con problemas estructurales que ningún gobierno desde la transición ha logrado resolver: paro estructural alto, baja productividad por hora, dependencia turística, demografía envejecida (1.16 hijos/mujer en 2024).</p>
+    <p><strong>España no va a ser Alemania.</strong> Pero tampoco corre riesgo inminente de convertirse en Argentina. Su trayectoria razonable: una economía de servicios de renta alta, lentamente convergiendo con la media europea, vulnerable a shocks externos pero capaz de recuperarse cuando el entorno mejora.</p>
+    <p><strong>El factor crítico de los próximos 20 años</strong> será la transición demográfica: con dependency ratio 56% y fertilidad 1.16, sin inmigración significativa la fuerza laboral disminuye. La productividad por trabajador debe crecer al doble que ahora para mantener el nivel de vida.</p>
+  </div>
+</div>
+
+<div class="cs-sec" id="cs10">
+  <div class="cs-sec__num">§ 10 · Metodología</div>
+  <div class="cs-sec__title">Fuentes, fiabilidad y caveats</div>
+  <div class="cs-sec__body">
+    <p><strong>Fuentes de datos:</strong></p>
+    <ul>
+      <li><strong>World Bank Open Data</strong> — 47 indicadores macroeconómicos, panel completo 1965-2024 (CC-BY-4.0)</li>
+      <li><strong>REST Countries v3.1</strong> — Metadata de países (banderas, regiones)</li>
+      <li><strong>FRED (St. Louis Fed)</strong> — Contexto macro global: Brent, VIX, Fed Funds, Stress Index</li>
+      <li><strong>Caldara &amp; Iacoviello</strong> — Geopolitical Risk Index (GPR)</li>
+      <li><strong>Eurostat HBS / BLS CES / INEGI</strong> — Desglose presupuestario familiar para 31 países</li>
+    </ul>
+    <p><strong>Modelos analíticos:</strong></p>
+    <ul>
+      <li><strong>Random Forest predictivo</strong> (200 árboles, AUC 0.824) — predicción de patrón de crisis</li>
+      <li><strong>K-Means clustering</strong> (K=5, silhouette 0.185, 27 features) — grupos económicos data-driven</li>
+      <li><strong>Reglas de arquetipo</strong> (8 categorías) — clasificación interpretable</li>
+      <li><strong>Composite scores</strong> — strength (35/25/20/20), vulnerability (40/30/30), cost-of-living (PPP ratio)</li>
+    </ul>
+    <p><strong>Caveats reconocidos:</strong></p>
+    <ul>
+      <li>Heterogeneidad sectorial: España solo tiene VA sectorial desde 1995 (limitación WB)</li>
+      <li>Empleo sectorial WB solo desde 1991 (limitación ILO)</li>
+      <li>Datos PPP solo desde 1990</li>
+      <li>Iraq 1971 excluido del análisis cambiario (error WB documentado)</li>
+      <li>El presupuesto familiar es <em>estimación</em> de gasto medio, no <em>renta real</em></li>
+    </ul>
+    <p style="margin-top:1rem">Stack técnico: <strong>PostgreSQL 16</strong> · <strong>FastAPI</strong> · <strong>Python 3.12</strong> · <strong>scikit-learn 1.4</strong> · <strong>pandas 2.2</strong> · <strong>Docker Compose</strong>. Pipeline ETL idempotente con 17 vistas materializadas analíticas.</p>
+  </div>
+</div>
+
+<div class="cs-footer">
+  <p><strong>Informe generado el 02 de June de 2026</strong> a partir del pipeline ETL de Countries ETL Dashboard. Todos los datos son públicos y verificables en las fuentes citadas. Este análisis es académico/portfolio y no constituye asesoramiento financiero.</p>
+  <p>Código fuente y dashboard interactivo: <a href="https://github.com/" target="_blank">github.com/usuario/etl_countries</a> · Stack: Docker Compose / PostgreSQL / FastAPI / scikit-learn / Chart.js</p>
+  <p style="margin-top:.7rem;color:hsl(45,90%,55%)">Para citar: <em>Spain Macroeconomic Case Study, Countries ETL Dashboard v4 (2026)</em>.</p>
+</div>
+
+</main>
+</body>
+</html>

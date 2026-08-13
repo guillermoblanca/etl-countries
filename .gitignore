@@ -1,0 +1,11 @@
+.env
+*.env
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+
+# Pre-downloaded context data (run scripts/download_fred.py to populate)
+data/*.csv
+data/*.xls
+data/*.xlsx

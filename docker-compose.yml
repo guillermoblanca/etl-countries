@@ -1,0 +1,49 @@
+services:
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  etl:
+    build: ./etl
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./data:/app/data:ro
+      - ./db/analytics_views.sql:/app/analytics_views.sql:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: ./api
+    ports:
+      # Override API_PORT in .env if 8080 is already taken on your machine.
+      - "${API_PORT:-8080}:8000"
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    depends_on:
+      etl:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
