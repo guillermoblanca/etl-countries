@@ -98,12 +98,25 @@ def main():
     unemp_drop = trend_abs("Paro %")
     debt_drop = trend_abs("Deuda gob. %")
 
-    def ranked_value(code, decimals=1, default="—"):
+    def latest_value(code, decimals=1, default="—"):
+        """
+        Latest non-null value for an indicator.
+
+        /api/country/{cca2}/ranking only covers four headline indicators, so
+        anything outside that set has to come from the series itself. Reading
+        the ranking blindly is what turned the current-account figure into an
+        em dash on the first attempt at this fix.
+        """
         v = (ranking.get(code) or {}).get("value")
+        if v is None:
+            series = [p for p in fetch(f"/api/timeseries/{c['cca2']}/{code}")
+                      if p.get("value") is not None]
+            if series:
+                v = max(series, key=lambda p: p["year"])["value"]
         return f"{v:.{decimals}f}".replace(".", ",") if v is not None else default
 
-    inflation_now = ranked_value("FP.CPI.TOTL.ZG")   # was hardcoded as 2,8%
-    curr_acc_now = ranked_value("BN.CAB.XOKA.GD.ZS")  # was hardcoded as 3,2%
+    inflation_now = latest_value("FP.CPI.TOTL.ZG")     # was hardcoded as 2,8%
+    curr_acc_now = latest_value("BN.CAB.XOKA.GD.ZS")   # was hardcoded as 3,2%
 
     auc_txt = f"{model_auc:.3f}".replace(".", ",") if model_auc else "—"
     n_txt = f"{model_n:,}".replace(",", ".") if model_n else "—"
