@@ -98,6 +98,13 @@ def main():
     unemp_drop = trend_abs("Paro %")
     debt_drop = trend_abs("Deuda gob. %")
 
+    def ranked_value(code, decimals=1, default="—"):
+        v = (ranking.get(code) or {}).get("value")
+        return f"{v:.{decimals}f}".replace(".", ",") if v is not None else default
+
+    inflation_now = ranked_value("FP.CPI.TOTL.ZG")   # was hardcoded as 2,8%
+    curr_acc_now = ranked_value("BN.CAB.XOKA.GD.ZS")  # was hardcoded as 3,2%
+
     auc_txt = f"{model_auc:.3f}".replace(".", ",") if model_auc else "—"
     n_txt = f"{model_n:,}".replace(",", ".") if model_n else "—"
     if gdp_top_pct:
@@ -459,7 +466,7 @@ def main():
   <div class="cs-sec__body">
     <p>Los datos del periodo 2021-2024 muestran una recuperación amplia tras la pandemia y la invasión de Ucrania. Cada tarjeta muestra el cambio porcentual respecto al valor de hace tres años:</p>
     <div class="cs-stat-row">{trend_chips}</div>
-    <p>El paro cayó un <strong>{unemp_drop}%</strong> en tres años, la deuda pública bajó un <strong>{debt_drop}%</strong>, y la balanza comercial pasó de cerca de cero a un superávit del 3,2% del PIB. La inflación volvió cerca del objetivo del Banco Central Europeo (2,8% actualmente, frente al objetivo del 2%). El único indicador en color rojo es la desaceleración del crecimiento, pero partía de un rebote tras la pandemia muy alto (más del 5%).</p>
+    <p>El paro cayó un <strong>{unemp_drop}%</strong> en tres años, la deuda pública bajó un <strong>{debt_drop}%</strong>, y la balanza comercial pasó de cerca de cero a un superávit del {curr_acc_now}% del PIB. La inflación volvió cerca del objetivo del Banco Central Europeo ({inflation_now}% actualmente, frente al objetivo del 2%). El único indicador en color rojo es la desaceleración del crecimiento, pero partía de un rebote tras la pandemia muy alto (más del 5%).</p>
     <p>Si esta tendencia se mantiene, España podría recuperar parte del terreno perdido en 2008-2016. Pero requiere mantener la disciplina presupuestaria —algo que históricamente ha sido difícil en España.</p>
   </div>
 </div>
