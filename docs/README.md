@@ -5,8 +5,9 @@ Case Study, generated from the live Countries ETL Dashboard.
 
 ## What's here
 
-- **`index.html`** — Fully self-contained report (~36 KB). No backend, no JS dependencies,
-  no external CSS. Just open it in a browser.
+- **`index.html`** — Standalone report (~45 KB). No backend and no JS dependencies:
+  every figure is baked in at build time. The only external request is a Google
+  Fonts stylesheet; the page renders correctly with system fonts if it is blocked.
 - **`.nojekyll`** — Tells GitHub Pages to serve files as-is (skip Jekyll processing).
 
 ## Deploy to GitHub Pages

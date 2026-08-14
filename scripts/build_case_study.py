@@ -65,10 +65,53 @@ def main():
     recent = d.get("recent_trends") or []
     ml_risk = d.get("ml_risk") or {}
 
+    # ── Figures that must never be written by hand ───────────────────────────
+    # An earlier version of this report hardcoded Spain's position ("top 1.4%"),
+    # the model's AUC (0.824) and its training size (11,475) straight into the
+    # prose. All three drifted away from the data the same page was rendering.
+    # They are now derived on every build.
+    #
+    # /case-study/spain returns a strength object without global_rank, which is
+    # why the composite ranking used to render as an em dash. Take it from the
+    # analytics endpoint, which carries it.
+    strength_ranked = fetch(f"/analytics/strength/{c['cca2']}")
+    strength = {**strength, **strength_ranked}
+
+    ranking = fetch(f"/api/country/{c['cca2']}/ranking")
+    gdp_rank = ranking.get("NY.GDP.PCAP.CD") or {}
+    gdp_pos, gdp_of = gdp_rank.get("global_rank"), gdp_rank.get("global_total")
+    gdp_top_pct = f"{gdp_pos / gdp_of * 100:.0f}" if gdp_pos and gdp_of else None
+
+    model = (fetch("/ml/predict/model-info") or {}).get("metrics") or {}
+    model_auc = model.get("auc_roc")
+    model_n = model.get("train_samples")
+
+    # Same reasoning for the prose in the "últimos 3 años" section, which used to
+    # restate figures the chips above it were already computing.
+    trend_by_label = {t.get("label", "").strip(): t for t in recent}
+
+    def trend_abs(label, default="—"):
+        t = trend_by_label.get(label) or {}
+        v = t.get("delta_pct_3y")
+        return f"{abs(v):.1f}".replace(".", ",") if v is not None else default
+
+    unemp_drop = trend_abs("Paro %")
+    debt_drop = trend_abs("Deuda gob. %")
+
+    auc_txt = f"{model_auc:.3f}".replace(".", ",") if model_auc else "—"
+    n_txt = f"{model_n:,}".replace(",", ".") if model_n else "—"
+    if gdp_top_pct:
+        gdp_pos_txt = (
+            f"el <strong>{gdp_top_pct}% de los países más ricos del mundo por "
+            f"PIB per cápita</strong> (puesto {gdp_pos} de {gdp_of})"
+        )
+    else:
+        gdp_pos_txt = "<strong>la mitad alta mundial por PIB per cápita</strong>"
+
     # ── Sections HTML ────────────────────────────────────────────────────────
     hero_kpis = f"""
       <div class="cs-hero__kpi"><div class="cs-hero__kpi-val">{fmt_usd(c.get('latest_gdp_per_capita'))}</div><div class="cs-hero__kpi-lbl">PIB per cápita</div></div>
-      <div class="cs-hero__kpi"><div class="cs-hero__kpi-val">{safe(strength.get('strength_score'))}</div><div class="cs-hero__kpi-lbl">Puntuación fortaleza · puesto #{safe(strength.get('global_rank'))}/{safe(strength.get('total'), 210)}</div></div>
+      <div class="cs-hero__kpi"><div class="cs-hero__kpi-val">{safe(strength.get('strength_score'))}</div><div class="cs-hero__kpi-lbl">Puntuación fortaleza · puesto #{safe(strength.get('global_rank'))}/{safe(strength.get('total'))}</div></div>
       <div class="cs-hero__kpi"><div class="cs-hero__kpi-val">{safe(convergence.get('pct_us_now'))}%</div><div class="cs-hero__kpi-lbl">del PIB per cápita de EE.UU.</div></div>
       <div class="cs-hero__kpi"><div class="cs-hero__kpi-val">{safe(pp.get('cost_of_living_index'))}</div><div class="cs-hero__kpi-lbl">Índice coste de vida (EE.UU.=100)</div></div>
       <div class="cs-hero__kpi"><div class="cs-hero__kpi-val">{(cluster.get('label') or '—').split(' ')[0]}</div><div class="cs-hero__kpi-lbl">Grupo económico</div></div>
@@ -79,7 +122,7 @@ def main():
       <div class="cs-stat"><div class="cs-stat__val">{safe(strength.get('driver_level'))}</div><div class="cs-stat__lbl">Nivel de renta<br>(parte alta mundial)</div></div>
       <div class="cs-stat"><div class="cs-stat__val">{safe(strength.get('driver_stability'))}</div><div class="cs-stat__lbl">Estabilidad<br>(variación del crecimiento 30 años)</div></div>
       <div class="cs-stat"><div class="cs-stat__val" style="color:var(--red)">{safe(strength.get('driver_resilience'))}</div><div class="cs-stat__lbl">Capacidad de recuperación<br>(tras una crisis)</div></div>
-      <div class="cs-stat"><div class="cs-stat__val" style="color:var(--red)">{safe(strength.get('driver_diversification'))}</div><div class="cs-stat__lbl">Diversificación sectorial<br>(servicios = 74% del PIB)</div></div>
+      <div class="cs-stat"><div class="cs-stat__val" style="color:var(--red)">{safe(strength.get('driver_diversification'))}</div><div class="cs-stat__lbl">Diversificación sectorial<br>(servicios = {safe(archetype.get('services_va_pct'))}% del PIB)</div></div>
     """
 
     # Section 3 Europe table
@@ -329,7 +372,7 @@ def main():
   <div class="cs-sec__num">§ 1 · Resumen ejecutivo</div>
   <div class="cs-sec__title">España es una economía <em>mediana consolidada</em>, no fuerte ni débil</div>
   <div class="cs-sec__body">
-    <p>España aparece entre el <strong>1.4% de los países más ricos del mundo por PIB per cápita</strong> ({fmt_usd(c.get('latest_gdp_per_capita'))}) pero solo en el <strong>puesto {safe(strength.get('global_rank'))} de {safe(strength.get('total'), 210)}</strong> según la <em>puntuación compuesta de fortaleza</em>, una medida que combina cuatro elementos: el nivel de renta, la estabilidad histórica del crecimiento, la capacidad de recuperación ante crisis y la diversificación de su economía entre sectores. La paradoja: España es rica en términos absolutos pero su economía tiene <strong>fragilidades estructurales</strong> que la sitúan por debajo de su grupo natural de comparación —los países desarrollados de la eurozona.</p>
+    <p>España aparece entre {gdp_pos_txt} ({fmt_usd(c.get('latest_gdp_per_capita'))}) pero solo en el <strong>puesto {safe(strength.get('global_rank'))} de {safe(strength.get('total'))}</strong> según la <em>puntuación compuesta de fortaleza</em>, una medida que combina cuatro elementos: el nivel de renta, la estabilidad histórica del crecimiento, la capacidad de recuperación ante crisis y la diversificación de su economía entre sectores. La paradoja: España es rica en términos absolutos pero su economía tiene <strong>fragilidades estructurales</strong> que la sitúan por debajo de su grupo natural de comparación —los países desarrollados de la eurozona.</p>
     <p>La <em>puntuación de fortaleza</em> de <strong>{safe(strength.get('strength_score'))}/100</strong> se compone de cuatro elementos. Cuanto mayor el número, mejor:</p>
     <div class="cs-stat-row">{sec1_stats}</div>
     <p>Los dos primeros elementos están bien — España tiene nivel de renta alto y una estabilidad razonable del crecimiento. Los dos últimos arrastran la puntuación: la <strong>recuperación lenta</strong> tras las crisis (consecuencia directa de no poder devaluar dentro del euro) y la <strong>poca diversificación</strong> entre sectores (alta concentración en servicios, especialmente turismo).</p>
@@ -416,7 +459,7 @@ def main():
   <div class="cs-sec__body">
     <p>Los datos del periodo 2021-2024 muestran una recuperación amplia tras la pandemia y la invasión de Ucrania. Cada tarjeta muestra el cambio porcentual respecto al valor de hace tres años:</p>
     <div class="cs-stat-row">{trend_chips}</div>
-    <p>El paro cayó un <strong>20,4%</strong> en tres años, la deuda pública bajó un <strong>20,3%</strong>, y la balanza comercial pasó de cerca de cero a un superávit del 3,2% del PIB. La inflación volvió cerca del objetivo del Banco Central Europeo (2,8% actualmente, frente al objetivo del 2%). El único indicador en color rojo es la desaceleración del crecimiento, pero partía de un rebote tras la pandemia muy alto (más del 5%).</p>
+    <p>El paro cayó un <strong>{unemp_drop}%</strong> en tres años, la deuda pública bajó un <strong>{debt_drop}%</strong>, y la balanza comercial pasó de cerca de cero a un superávit del 3,2% del PIB. La inflación volvió cerca del objetivo del Banco Central Europeo (2,8% actualmente, frente al objetivo del 2%). El único indicador en color rojo es la desaceleración del crecimiento, pero partía de un rebote tras la pandemia muy alto (más del 5%).</p>
     <p>Si esta tendencia se mantiene, España podría recuperar parte del terreno perdido en 2008-2016. Pero requiere mantener la disciplina presupuestaria —algo que históricamente ha sido difícil en España.</p>
   </div>
 </div>
@@ -425,7 +468,7 @@ def main():
   <div class="cs-sec__num">§ 8 · El modelo predictivo</div>
   <div class="cs-sec__title">Probabilidad de patrón de crisis: <em>{ml_pct:.1f}%</em> (riesgo bajo)</div>
   <div class="cs-sec__body">
-    <p>Entrenamos un modelo de <em>Random Forest</em> (algoritmo de "bosque aleatorio" que combina cientos de árboles de decisión, ver glosario) con 11.475 observaciones país-año del periodo 1965-2014. Lo validamos sobre datos posteriores (2015-2024) que el modelo no había visto durante el entrenamiento —lo que se llama validación "fuera de muestra". Su capacidad de discriminación, medida con la métrica AUC, es de 0,824: un buen resultado para datos macroeconómicos (un valor de 0,5 sería aleatorio, 1,0 sería perfecto).</p>
+    <p>Entrenamos un modelo de <em>Random Forest</em> (algoritmo de "bosque aleatorio" que combina cientos de árboles de decisión, ver glosario) con {n_txt} observaciones país-año del periodo 1965-2014. Lo validamos sobre datos posteriores (2015-2024) que el modelo no había visto durante el entrenamiento —lo que se llama validación "fuera de muestra". Su capacidad de discriminación, medida con la métrica AUC, es de {auc_txt}: un buen resultado para datos macroeconómicos (un valor de 0,5 sería aleatorio, 1,0 sería perfecto).</p>
     <p>El modelo clasifica a España como <strong>de bajo riesgo de presentar un patrón pre-crisis</strong> (probabilidad: {ml_pct:.1f}%). Este resultado es coherente con los demás indicadores: España no muestra las <em>señales</em> típicas que preceden a una crisis (alta deuda externa, inflación descontrolada, baja inversión productiva). Sus problemas son <strong>estructurales</strong> —productividad, paro de larga duración, envejecimiento—, no de inestabilidad inmediata.</p>
     <p>La <strong>vulnerabilidad externa</strong> (puntuación {vu_score}/100, donde 100 sería extremadamente vulnerable) está en el rango bajo-medio: ni es un petroestado dependiente de un solo recurso, ni una economía cerrada sin reservas en moneda extranjera. El algoritmo de agrupamiento la coloca en el grupo "<em>{cluster_label}</em>", reuniéndola con las economías de la eurozona.</p>
   </div>
@@ -454,7 +497,7 @@ def main():
     </ul>
     <p><strong>Modelos analíticos utilizados:</strong></p>
     <ul>
-      <li><strong>Random Forest (bosque aleatorio)</strong> — 200 árboles de decisión combinados. Métrica de calidad AUC = 0,824. Predice si un país presenta el patrón típico de pre-crisis.</li>
+      <li><strong>Random Forest (bosque aleatorio)</strong> — 200 árboles de decisión combinados. Métrica de calidad AUC = {auc_txt}. Predice si un país presenta el patrón típico de pre-crisis.</li>
       <li><strong>Agrupamiento K-Means</strong> — 5 grupos descubiertos, índice de calidad <em>silhouette</em> 0,185, basado en 27 variables económicas.</li>
       <li><strong>Reglas de clasificación por arquetipos</strong> — 8 categorías deterministas (petroestado, exportador manufacturero, economía de servicios, etc.) para una interpretación intuitiva.</li>
       <li><strong>Puntuaciones compuestas</strong> — Fortaleza (pondera nivel/estabilidad/recuperación/diversificación al 35/25/20/20%), vulnerabilidad externa (40/30/30%), índice de coste de vida (cociente PIB nominal / PIB ajustado por coste de vida).</li>
